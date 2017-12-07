@@ -28,6 +28,7 @@ def make_module(name, content):
 def import_as(name):
     def inner(cls):
         make_module(name, cls.__dict__)
+        return cls
 
     return inner
 
@@ -54,7 +55,7 @@ def dbsession(request):
         tables = None
 
     meta = getattr(request.module, 'METADATA', db.Base.metadata)
-    assert settings.DATABASE_URI == str(db.engine.url), 'WEIRDO!' # double check correct db settings
+    assert Settings.DATABASE_URI == str(db.engine.url), 'WEIRDO!' # double check correct db settings
 
     if tables:
         for t in tables:
