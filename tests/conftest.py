@@ -62,7 +62,7 @@ def dbsession(request):
     else:
         meta.drop_all(db.engine, tables)
 
-    for t in tables:
+    for t in tables or []:
         t.constraints = [r for r in t.constraints if not isinstance(r, ForeignKeyConstraint)]
     meta.create_all(db.engine, tables)
 
