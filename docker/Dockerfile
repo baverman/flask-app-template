@@ -4,7 +4,7 @@ FROM alpine:3.7 as base
 
 ENV LANG=C.UTF-8
 RUN apk update \
- && apk add python3 libffi openssl ca-certificates pcre wget \
+ && apk add python3 libffi openssl ca-certificates pcre wget sqlite \
  && ln -sf /usr/bin/python3.6 /usr/bin/python
 
 

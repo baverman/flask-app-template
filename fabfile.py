@@ -26,6 +26,7 @@ def prepare_image():
     hsh = image_hash()
     local(f'''
         docker inspect {PROJECT}:{hsh} > /dev/null || docker build -t {PROJECT}:{hsh} docker
+        docker inspect {PROJECT}:{hsh} > /dev/null
         docker save {PROJECT}:{hsh} | gzip -1 > /tmp/image.tar.gz
     ''')
 
