@@ -88,5 +88,5 @@ def shell():
         cd {PROJECT}
         docker run --rm -e CONFIG={CONFIG} -it \\
                    -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID \\
-                   {PROJECT}:`cat app/image.hash` bash
+                   {PROJECT}:`cat app/image.hash` sh
     ''')
