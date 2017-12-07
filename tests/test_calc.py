@@ -1,5 +1,5 @@
-from PROJECT.db import models as m
-from PROJECT import calc
+from my_project.db import models as m
+from my_project import calc
 
 TABLES = [m.Value]
 

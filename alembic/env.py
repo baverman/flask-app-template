@@ -8,7 +8,7 @@ from sqlalchemy.engine.reflection import Inspector
 config = context.config
 fileConfig(config.config_file_name)
 
-from PROJECT import db
+from my_project import db
 db.import_all()
 target_metadata = db.Base.metadata
 

@@ -2,3 +2,4 @@
 /*.db
 /.cache
 /settings/local.py
+/image.hash

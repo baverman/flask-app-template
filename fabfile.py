@@ -1,13 +1,17 @@
 from datetime import datetime
 from hashlib import md5
 from fabric.api import run, local, env, get, put, runs_once, execute
+from fabric.contrib.files import exists
 
-env.hosts = ['host1']
-PRJ_NAME = 'PROJECT'
+PROJECT = 'my_project'
+HTTP_PORT = 8000
+CONFIG = '/app/settings/prod.py'
 
+if not env.hosts:
+    env.hosts = ['host1']
 
 def init():
-    run(f'mkdir -p ~/{PRJ_NAME}/images ~/{PRJ_NAME}/data')
+    run(f'mkdir -p ~/{PROJECT}/images ~/{PROJECT}/data')
 
 
 def image_hash():
@@ -21,43 +25,45 @@ def image_hash():
 def prepare_image():
     hsh = image_hash()
     local(f'''
-        docker inspect {PRJ_NAME}:{hsh} > /dev/null || docker build -t {PRJ_NAME}:{hsh} docker
-        docker save {PRJ_NAME}:{hsh} | gzip -1 > /tmp/image.tar.gz
+        docker inspect {PROJECT}:{hsh} > /dev/null || docker build -t {PROJECT}:{hsh} docker
+        docker save {PROJECT}:{hsh} | gzip -1 > /tmp/image.tar.gz
     ''')
 
 
 def push_image():
     hsh = image_hash()
-    execute(prepare_image)
-    local(f'rsync -P /tmp/image.tar.gz {env.host}:{PRJ_NAME}/images/{hsh}.tar.gz')
-    run(f'docker load -i {PRJ_NAME}/images/{hsh}.tar.gz')
+    image_file = f'{PROJECT}/images/{hsh}.tar.gz'
+    if not exists(image_file):
+        execute(prepare_image)
+        put('/tmp/image.tar.gz', image_file)
+    run(f'docker load -i {image_file}')
 
 
-def backup(fname=f'/tmp/{PRJ_NAME}-backup.tar.gz'):
-    run(f'tar -C {PRJ_NAME}/data -czf /tmp/backup.tar.gz .')
+def backup(fname=f'/tmp/{PROJECT}-backup.tar.gz'):
+    run(f'tar -C {PROJECT}/data -czf /tmp/backup.tar.gz .')
     get('/tmp/backup.tar.gz', fname)
 
 
-def restore(fname=f'/tmp/{PRJ_NAME}-backup.tar.gz'):
+def restore(fname=f'/tmp/{PROJECT}-backup.tar.gz'):
     put(fname, '/tmp/backup.tar.gz')
-    run(f'tar -C {PRJ_NAME}/data xf /tmp/backup.tar.gz .')
+    run(f'tar -C {PROJECT}/data xf /tmp/backup.tar.gz .')
 
 
 @runs_once
 def pack_backend():
     hsh = image_hash()
     local(f'''
-        echo {hsh} > image_hash
-        ( git ls-files && echo image_hash ) | tar czf /tmp/backend.tar.gz -T -
+        echo {hsh} > image.hash
+        ( git ls-files && echo image.hash ) | tar czf /tmp/backend.tar.gz -T -
      ''')
 
 
 def upload():
     version = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     execute(pack_backend)
-    put('/tmp/backend.tar.gz', PRJ_NAME)
+    put('/tmp/backend.tar.gz', PROJECT)
     run(f'''
-        cd {PRJ_NAME}
+        cd {PROJECT}
         mkdir app-{version}
         tar -C app-{version} -xf backend.tar.gz
         ln -snf app-{version} app
@@ -66,21 +72,21 @@ def upload():
 
 def restart():
     run(f'''
-        docker stop -t 10 {PRJ_NAME}-http
-        docker rm {PRJ_NAME}-http || true
-        cd {PRJ_NAME}
-        docker run -d --name {PRJ_NAME}-http -p 5000:5000 -e CONFIG=/data/config.py \\
+        docker stop -t 10 {PROJECT}-http
+        docker rm {PROJECT}-http || true
+        cd {PROJECT}
+        docker run -d --name {PROJECT}-http -p {HTTP_PORT}:5000 -e CONFIG={CONFIG} \\
                    -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID \\
-                   {PRJ_NAME}:`cat app/image_hash` uwsgi --ini /app/uwsgi.ini
+                   {PROJECT}:`cat app/image.hash` uwsgi --ini /app/uwsgi.ini
         sleep 3
-        docker logs --tail 10 {PRJ_NAME}-http
+        docker logs --tail 10 {PROJECT}-http
     ''')
 
 
 def shell():
     run(f'''
-        cd {PRJ_NAME}
-        docker run --rm -e CONFIG=/data/config.py -it \\
+        cd {PROJECT}
+        docker run --rm -e CONFIG={CONFIG} -it \\
                    -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID \\
-                   {PRJ_NAME}:`cat app/image_hash` bash
+                   {PROJECT}:`cat app/image.hash` bash
     ''')

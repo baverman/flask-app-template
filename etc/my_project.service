@@ -1,0 +1,10 @@
+[Unit]
+Description = Starting my_project
+
+[Service]
+User=1000
+Group=1000
+ExecStart = /usr/bin/docker restart my_project-http
+
+[Install]
+WantedBy = multi-user.target

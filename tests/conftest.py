@@ -43,7 +43,7 @@ import pytest
 import settings
 assert settings.CORRECT_SETTING
 
-from PROJECT import db
+from my_project import db
 
 
 @pytest.fixture

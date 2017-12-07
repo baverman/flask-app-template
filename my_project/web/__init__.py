@@ -2,7 +2,7 @@ from flaskish import Flask
 
 import settings
 
-app = Flask('PROJECT')
+app = Flask('my_project')
 
 # Provide additional context for errors inside request scope
 if settings.SENTRY:

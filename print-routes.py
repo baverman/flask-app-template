@@ -1,3 +1,3 @@
 #!/usr/bin/env python
-from PROJECT import web
+from my_project import web
 web.app.print_routes()
