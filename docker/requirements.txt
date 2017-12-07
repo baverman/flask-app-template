@@ -1,0 +1,9 @@
+alembic==0.9.6
+covador==0.9.16
+Flask==0.12.2
+pytz==2017.3
+raven[flask]==6.3.0
+redis==2.10.6
+requests==2.18.4
+SQLAlchemy==1.1.15
+uWSGI==2.0.15

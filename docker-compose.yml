@@ -1,0 +1,11 @@
+version: '3'
+services:
+  http:
+    build: ./docker
+    ports:
+     - "5000:5000"
+    user: $USER_ID
+    volumes:
+     - .:/app
+    working_dir: /app
+    command: uwsgi --ini /app/uwsgi.ini
