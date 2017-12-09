@@ -8,4 +8,4 @@ services:
     volumes:
      - .:/app
     working_dir: /app
-    command: uwsgi --ini /app/uwsgi.ini
+    command: uwsgi --ini /app/etc/uwsgi.ini

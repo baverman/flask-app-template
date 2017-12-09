@@ -6,6 +6,7 @@ from fabric.contrib.files import exists
 PROJECT = 'my_project'
 HTTP_PORT = 8000
 CONFIG = '/app/settings/prod.py'
+STATSD_OPTS = None  # '-g carbon-host -p my_project'
 
 if not env.hosts:
     env.hosts = ['host1']
@@ -25,9 +26,9 @@ def image_hash():
 def prepare_image():
     hsh = image_hash()
     local(f'''
-        docker inspect {PROJECT}:{hsh} > /dev/null || docker build -t {PROJECT}:{hsh} docker
-        docker inspect {PROJECT}:{hsh} > /dev/null
-        docker save {PROJECT}:{hsh} | gzip -1 > /tmp/image.tar.gz
+        docker inspect {PROJECT}:{hsh} > /dev/null \\
+        || docker build -t {PROJECT}:{hsh} docker \\
+        && docker save {PROJECT}:{hsh} | gzip -1 > /tmp/image.tar.gz
     ''')
 
 
@@ -72,13 +73,17 @@ def upload():
 
 
 def restart():
+    evars = ''
+    if STATSD_OPTS:
+        evars = f'-e STATSD_ENABLED=1 -e STATSD_OPTS=\'{STATSD_OPTS}\''
+
     run(f'''
         docker stop -t 10 {PROJECT}-http
         docker rm {PROJECT}-http || true
         cd {PROJECT}
         docker run -d --name {PROJECT}-http -p {HTTP_PORT}:5000 -e CONFIG={CONFIG} \\
-                   -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID \\
-                   {PROJECT}:`cat app/image.hash` uwsgi --ini /app/uwsgi.ini
+                   {evars} -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID \\
+                   {PROJECT}:`cat app/image.hash` uwsgi --ini /app/etc/uwsgi.ini
         sleep 3
         docker logs --tail 10 {PROJECT}-http
     ''')
