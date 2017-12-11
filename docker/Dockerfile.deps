@@ -1,0 +1,6 @@
+ARG IMAGE
+FROM ${IMAGE}
+
+RUN apk add python3-dev libffi-dev openssl-dev pcre-dev build-base linux-headers
+COPY ./requirements.txt /
+RUN pip3 install --prefix=/pypkg -r requirements.txt

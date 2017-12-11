@@ -11,6 +11,7 @@ STATSD_OPTS = None  # '-g carbon-host -p my_project'
 if not env.hosts:
     env.hosts = ['host1']
 
+
 def init():
     run(f'mkdir -p ~/{PROJECT}/images ~/{PROJECT}/data')
 
@@ -27,7 +28,7 @@ def prepare_image():
     hsh = image_hash()
     local(f'''
         docker inspect {PROJECT}:{hsh} > /dev/null \\
-        || docker build -t {PROJECT}:{hsh} docker \\
+        || docker/build.sh {PROJECT} {hsh} \\
         && docker save {PROJECT}:{hsh} | gzip -1 > /tmp/image.tar.gz
     ''')
 
