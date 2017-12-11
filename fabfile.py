@@ -18,6 +18,8 @@ def init():
 
 def image_hash():
     hsh = md5()
+    hsh.update(open('docker/Dockerfile.base', 'rb').read())
+    hsh.update(open('docker/Dockerfile.deps', 'rb').read())
     hsh.update(open('docker/Dockerfile', 'rb').read())
     hsh.update(open('requirements.txt', 'rb').read())
     return hsh.hexdigest()[:10]
