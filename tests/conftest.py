@@ -1,6 +1,6 @@
 import os
 import sys
-import imp
+import types
 import logging
 
 from sqlalchemy.schema import ForeignKeyConstraint
@@ -15,7 +15,7 @@ def make_module(name, content):
     if pkg:
         __import__(pkg)
     else:
-        module = imp.new_module(mname)
+        module = types.ModuleType(mname)
         module.__dict__.update(content)
 
     if pkg:

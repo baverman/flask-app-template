@@ -78,7 +78,7 @@ def upload():
 def restart():
     evars = ''
     if STATSD_OPTS:
-        evars = f'-e STATSD_ENABLED=1 -e STATSD_OPTS=\'{STATSD_OPTS}\''
+        evars = f'-e STATSD_OPTS=\'{STATSD_OPTS}\''
 
     run(f'''
         docker stop -t 10 {PROJECT}-http

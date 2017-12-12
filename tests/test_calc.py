@@ -1,7 +1,7 @@
 from my_project.db import models as m
 from my_project import calc
 
-# Declaration of requred models for this test module (can be ommited).
+# Declaration of required models for this test module (can be omitted).
 TABLES = [m.Value]
 
 

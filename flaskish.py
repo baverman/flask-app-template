@@ -62,6 +62,7 @@ class Request(_Request):
 
 class HeaderResponse(Response):
     def __init__(self):
+        # Skip Response.__init__ for optimization sake.
         self.headers = Headers()
 
 

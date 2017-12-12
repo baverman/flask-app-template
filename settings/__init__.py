@@ -27,7 +27,8 @@ if invalid_opts:
 
 # Configure logging
 if LOGGING:
-    logging.dictConfig(LOGGING)
+    import logging.config
+    logging.config.dictConfig(LOGGING)
 else:
     logging.basicConfig(level=LOGGING_LEVEL)
 
