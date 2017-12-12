@@ -1,36 +1,12 @@
 import os
-import sys
-import types
 import logging
 
 from sqlalchemy.schema import ForeignKeyConstraint
+from flaskish import import_as
 
 logging.basicConfig(level='DEBUG')
 if 'ECHO_SQL' in os.environ:
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-
-
-def make_module(name, content):
-    pkg, _, mname = name.rpartition('.')
-    if pkg:
-        __import__(pkg)
-    else:
-        module = types.ModuleType(mname)
-        module.__dict__.update(content)
-
-    if pkg:
-        module.__package__ = pkg
-        setattr(sys.modules[pkg], mname, module)
-
-    sys.modules[name] = module
-
-
-def import_as(name):
-    def inner(cls):
-        make_module(name, cls.__dict__)
-        return cls
-
-    return inner
 
 
 @import_as('settings')

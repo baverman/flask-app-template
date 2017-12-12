@@ -1,6 +1,7 @@
 from __future__ import print_function
-from functools import wraps
+import sys
 import logging
+from functools import wraps
 
 try:
     import ujson as json
@@ -132,3 +133,26 @@ class Flask(_Flask):
                 rule.rule,
                 func.__module__,
                 func.__name__))
+
+
+def make_module(name, content):
+    pkg, _, mname = name.rpartition('.')
+    if pkg:
+        __import__(pkg)
+    else:
+        module = type(sys)(mname)
+        module.__dict__.update(content)
+
+    if pkg:
+        module.__package__ = pkg
+        setattr(sys.modules[pkg], mname, module)
+
+    sys.modules[name] = module
+
+
+def import_as(name):
+    def inner(cls):
+        make_module(name, cls.__dict__)
+        return cls
+
+    return inner
