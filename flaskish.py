@@ -112,8 +112,15 @@ class Flask(_Flask):
                     result = result.to_json()
                 else:
                     code = 200
-                return self.response_class(json.dumps(result, ensure_ascii=False), code,
-                                           content_type='application/json')
+
+                try:
+                    response_body = json.dumps(result, ensure_ascii=False)
+                except Exception:
+                    self.logger.exception('Error serializing response')
+                    response_body = json.dumps(ApiError().to_json(), ensure_ascii=False)
+                    code = 500
+
+                return self.response_class(response_body, code, content_type='application/json')
             return self.route(*args, **kwargs)(inner)
         return decorator
 
