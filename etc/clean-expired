@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import time
+import shutil
+import os.path
+import argparse
+import glob
+
+
+def get_files(pattern):
+    if os.path.isdir(pattern):
+        pattern = os.path.join(pattern, '*')
+
+    for fname in glob.glob(pattern):
+        yield os.stat(fname).st_ctime, fname
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('Cleanup directory from old artifacts')
+    parser.add_argument('-c', '--count', type=int, default=10,
+                        help='keep at least this amount of files, default is 10')
+    parser.add_argument('-t', '--ttl', type=int, default=30,
+                        help='keep files which are not older then this amount of days, default is 30')
+    parser.add_argument('-n', '--dry-run', help='print files which will be deleted', action='store_true')
+    parser.add_argument('-p', '--print', help='print all matching files', action='store_true')
+    parser.add_argument('pattern', help='directory or glob pattern to clean', metavar="{directory|pattern}")
+
+    args = parser.parse_args()
+    now = time.time()
+    ttl = args.ttl * 86400
+
+    files = list(get_files(args.pattern))
+    files.sort()
+    if args.print:
+        for _ct, f in files:
+            print(f)
+    else:
+        if args.count:
+            files = files[:-args.count]
+
+        files_to_delete = [f for ct, f in files if ct + ttl < now]
+        for f in files_to_delete:
+            if args.dry_run:
+                print(f)
+            else:
+                if os.path.isdir(f):
+                    shutil.rmtree(f)
+                else:
+                    os.unlink(f)

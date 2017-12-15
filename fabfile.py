@@ -8,12 +8,18 @@ HTTP_PORT = 8000
 CONFIG = '/app/settings/prod.py'
 STATSD_OPTS = None  # '-g carbon-host -p my_project'
 
+# Workaround for true container OSes, like CoreOS.
+PYTHON = 'docker run --rm -u $UID:$GROUPS -v /:/mnt -w /mnt$PWD -it frolvlad/alpine-python3 python'
+
 if not env.hosts:
     env.hosts = ['host1']
 
 
 def init():
-    run(f'mkdir -p ~/{PROJECT}/images ~/{PROJECT}/data')
+    run(f'''
+        mkdir -p ~/{PROJECT}/images ~/{PROJECT}/data ~/{PROJECT}/bin
+    ''')
+    put('etc/clean-expired', f'{PROJECT}/bin', mode=0o755)
 
 
 def image_hash():
@@ -41,7 +47,10 @@ def push_image():
     if not exists(image_file):
         execute(prepare_image)
         put('/tmp/image.tar.gz', image_file)
-    run(f'docker load -i {image_file}')
+    run(f'''
+        docker load -i {image_file}
+        {PYTHON} {PROJECT}/bin/clean-expired -c 3 -t 15 '{PROJECT}/images/*.tar.gz'
+    ''')
 
 
 def backup(fname=f'/tmp/{PROJECT}-backup.tar.gz'):
@@ -72,6 +81,7 @@ def upload():
         mkdir app-{version}
         tar -C app-{version} -xf backend.tar.gz
         ln -snf app-{version} app
+        {PYTHON} bin/clean-expired -c 10 -t 30 'app-*'
     ''')
 
 
