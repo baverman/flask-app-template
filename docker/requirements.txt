@@ -1,4 +1,5 @@
 alembic==0.9.6
+click-lock==0.5.1
 covador==0.9.16
 Flask==0.12.2
 pytz==2017.3
