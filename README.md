@@ -1,11 +1,41 @@
 # flask-app-template
 
-Simple flask application template for HTTP API backend with decoupled business logic,
+Simple [Flask](http://flask.pocoo.org/) application template for HTTP API backend
+with decoupled business logic,
 [Alembic](http://alembic.zzzcomputing.com/en/latest/),
 [PyTest](https://docs.pytest.org/en/latest/),
 [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/),
 [Sentry](https://sentry.io/),
 [statsd server](https://github.com/baverman/statsdly/) and docker.
+
+
+## Features
+
+* Clean architecture. Flask `request`/`app` objects are limited to `web` package
+  only. It narrows possibilities for deep penetration of framework and HTTP layer into
+  an aplication core and leads to better design.
+
+* Ready to use API routes with errors and fast json serialization.
+
+* Fast start, you only need to replace `my_project` occurrences and ready to
+  code models and endpoints.
+
+* Alembic migrations.
+
+* Configured PyTest with dbsession fixture to prepare tables for your
+  unit tests.
+
+* Sentry integration.
+
+* Graphite/Carbon/Grafana integration.
+
+* Flexible configuration.
+
+* Multistage dockerfiles (gcc, dev libs and other tooling are stripped).
+  Alpine by default with Ubuntu as alternative.
+
+* Ready to deploy to production. Without serious scalability in mind, because it's
+  a DevOps work anyway.
 
 
 ## Local run in virtualenv
