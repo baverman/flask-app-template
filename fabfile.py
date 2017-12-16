@@ -95,10 +95,19 @@ def restart():
         docker rm {PROJECT}-http || true
         cd {PROJECT}
         docker run -d --name {PROJECT}-http -p {HTTP_PORT}:5000 -e CONFIG={CONFIG} \\
-                   {evars} -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID \\
+                   {evars} -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID:$GROUPS \\
                    {PROJECT}:`cat app/image.hash` uwsgi --ini /app/etc/uwsgi.ini
         sleep 3
         docker logs --tail 10 {PROJECT}-http
+    ''')
+
+
+def migrate(revision='head'):
+    run(f'''
+        cd {PROJECT}
+        docker run --rm -e CONFIG={CONFIG} -it \\
+                   -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID:$GROUPS \\
+                   {PROJECT}:`cat app/image.hash` alembic upgrade {revision}
     ''')
 
 
@@ -106,6 +115,6 @@ def shell():
     run(f'''
         cd {PROJECT}
         docker run --rm -e CONFIG={CONFIG} -it \\
-                   -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID \\
+                   -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID:$GROUPS \\
                    {PROJECT}:`cat app/image.hash` sh
     ''')

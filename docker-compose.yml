@@ -1,7 +1,7 @@
 version: '3'
 services:
   http:
-    build: ./docker
+    image: my_project
     ports:
      - "5000:5000"
     user: $USER_ID
