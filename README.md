@@ -1,7 +1,11 @@
 # flask-app-template
 
-Simple flask application template for HTTP API backend with decoupled business logic, alembic, pytest,
-sentry, statsd server and docker.
+Simple flask application template for HTTP API backend with decoupled business logic,
+[Alembic](http://alembic.zzzcomputing.com/en/latest/),
+[PyTest](https://docs.pytest.org/en/latest/),
+[uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/),
+[Sentry](https://sentry.io/),
+[statsd server](https://github.com/baverman/statsdly/) and docker.
 
 
 ## Local run in virtualenv
@@ -44,11 +48,11 @@ sentry, statsd server and docker.
 
 1. Run migrations:
 
-      USER_ID=$UID:$GROUPS docker-compose run http alembic upgrade head
+       USER_ID=$UID:$GROUPS docker-compose run http alembic upgrade head
 
 1. Run server:
 
-      USER_ID=$UID:$GROUPS docker-compose up
+       USER_ID=$UID:$GROUPS docker-compose up
 
 1. Call some endpoints:
 
