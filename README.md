@@ -61,9 +61,10 @@ Simple flask application template for HTTP API backend with decoupled business l
        curl -X GET 127.0.0.1:5000/sum
 
 
-## Deploy to some docker aware server
+## Deploy to some docker-aware server
 
-You need installed Fabric3. For first deploy run:
+You need ssh login to host and working docker environment there also
+you need locally installed Fabric3. For first deploy run:
 
     fab -H some.host init push_image upload migrate restart
 
