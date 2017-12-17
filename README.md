@@ -3,7 +3,7 @@
 Simple [Flask](http://flask.pocoo.org/) application template for HTTP API backend
 with decoupled business logic,
 [Alembic](http://alembic.zzzcomputing.com/en/latest/),
-[PyTest](https://docs.pytest.org/en/latest/),
+[pytest](https://docs.pytest.org/en/latest/),
 [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/),
 [Sentry](https://sentry.io/),
 [statsd server](https://github.com/baverman/statsdly/) and docker.
@@ -22,7 +22,7 @@ with decoupled business logic,
 
 * Alembic migrations.
 
-* Configured PyTest with dbsession fixture to prepare tables for your
+* Configured pytest with dbsession fixture to prepare tables for your
   unit tests.
 
 * Sentry integration.
