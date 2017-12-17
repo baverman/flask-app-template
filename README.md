@@ -108,3 +108,4 @@ image on a server:
     fab -H some.host push_image
 
 You can tune default host, http port and config file location in `fabfile.py`.
+For full list of commands you can run `fab --list`.

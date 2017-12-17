@@ -1,6 +1,6 @@
 from datetime import datetime
 from hashlib import md5
-from fabric.api import run, local, env, get, put, runs_once, execute
+from fabric.api import run, local, env, get, put, runs_once, execute, task
 from fabric.contrib.files import exists
 
 PROJECT = 'my_project'
@@ -32,7 +32,9 @@ def get_evars():
     return ' '.join(f'-e "{k}={v}"' for k, v in ENVIRONMENT.items() if v)
 
 
+@task
 def init():
+    """Prepares directory structure on a remote host"""
     run(f'''
         mkdir -p ~/{PROJECT}/images ~/{PROJECT}/data ~/{PROJECT}/bin
     ''')
@@ -40,7 +42,9 @@ def init():
 
 
 @runs_once
+@task
 def prepare_image():
+    """Builds local docker image"""
     hsh = image_hash()
     local(f'''
         docker inspect {PROJECT}:{hsh} > /dev/null \\
@@ -49,7 +53,9 @@ def prepare_image():
     ''')
 
 
+@task
 def push_image():
+    """Checks for changes in docker image and uploads new image to remote host"""
     hsh = image_hash()
     image_file = f'{PROJECT}/images/{hsh}.tar.gz'
     if not exists(image_file):
@@ -61,18 +67,24 @@ def push_image():
     ''')
 
 
+@task
 def backup(fname=f'/tmp/{PROJECT}-backup.tar.gz'):
+    """Makes backup of data dir on a remote host"""
     run(f'tar -C {PROJECT}/data -czf /tmp/backup.tar.gz .')
     get('/tmp/backup.tar.gz', fname)
 
 
+@task
 def restore(fname=f'/tmp/{PROJECT}-backup.tar.gz'):
+    """Restores backup"""
     put(fname, '/tmp/backup.tar.gz')
     run(f'tar -C {PROJECT}/data xf /tmp/backup.tar.gz .')
 
 
 @runs_once
+@task
 def pack_backend():
+    """Makes archive with all code"""
     hsh = image_hash()
     local(f'''
         echo {hsh} > image.hash
@@ -80,7 +92,9 @@ def pack_backend():
      ''')
 
 
+@task
 def upload():
+    """Uploads code archive to remote host and switches app link"""
     version = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     execute(pack_backend)
     put('/tmp/backend.tar.gz', PROJECT)
@@ -93,7 +107,9 @@ def upload():
     ''')
 
 
+@task
 def restart():
+    """Restarts service"""
     evars = get_evars()
     run(f'''
         docker stop -t 10 {PROJECT}-http
@@ -107,7 +123,9 @@ def restart():
     ''')
 
 
+@task
 def migrate(revision='head'):
+    """Applies migrations"""
     evars = get_evars()
     run(f'''
         cd {PROJECT}
@@ -117,7 +135,9 @@ def migrate(revision='head'):
     ''')
 
 
+@task
 def shell():
+    """Run shell inside container"""
     evars = get_evars()
     run(f'''
         cd {PROJECT}
