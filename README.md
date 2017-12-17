@@ -34,7 +34,7 @@ with decoupled business logic,
 * Multistage dockerfiles (gcc, dev libs and other tooling are stripped).
   Alpine by default with Ubuntu as alternative.
 
-* Ready to deploy to production. Without serious scalability in mind, because it's
+* Ready to deploy to production. Without serious scalability in mind, it's
   a DevOps work anyway.
 
 
