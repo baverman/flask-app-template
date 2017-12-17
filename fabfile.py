@@ -5,21 +5,18 @@ from fabric.contrib.files import exists
 
 PROJECT = 'my_project'
 HTTP_PORT = 8000
-CONFIG = '/app/settings/prod.py'
-STATSD_OPTS = None  # '-g carbon-host -p my_project'
+
+# Container environment
+ENVIRONMENT = {
+    'CONFIG': '/app/settings/prod.py',
+    'STATSD_OPTS': None  # '-g carbon-host -p my_project'
+}
 
 # Workaround for true container OSes, like CoreOS.
 PYTHON = 'docker run --rm -u $UID:$GROUPS -v /:/mnt -w /mnt$PWD -it frolvlad/alpine-python3 python'
 
 if not env.hosts:
     env.hosts = ['host1']
-
-
-def init():
-    run(f'''
-        mkdir -p ~/{PROJECT}/images ~/{PROJECT}/data ~/{PROJECT}/bin
-    ''')
-    put('etc/clean-expired', f'{PROJECT}/bin', mode=0o755)
 
 
 def image_hash():
@@ -29,6 +26,17 @@ def image_hash():
     hsh.update(open('docker/Dockerfile', 'rb').read())
     hsh.update(open('requirements.txt', 'rb').read())
     return hsh.hexdigest()[:10]
+
+
+def get_evars():
+    return ' '.join(f'-e "{k}={v}"' for k, v in ENVIRONMENT.items() if v)
+
+
+def init():
+    run(f'''
+        mkdir -p ~/{PROJECT}/images ~/{PROJECT}/data ~/{PROJECT}/bin
+    ''')
+    put('etc/clean-expired', f'{PROJECT}/bin', mode=0o755)
 
 
 @runs_once
@@ -86,16 +94,13 @@ def upload():
 
 
 def restart():
-    evars = ''
-    if STATSD_OPTS:
-        evars = f'-e STATSD_OPTS=\'{STATSD_OPTS}\''
-
+    evars = get_evars()
     run(f'''
         docker stop -t 10 {PROJECT}-http
         docker rm {PROJECT}-http || true
         cd {PROJECT}
-        docker run -d --name {PROJECT}-http -p {HTTP_PORT}:5000 -e CONFIG={CONFIG} \\
-                   {evars} -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID:$GROUPS \\
+        docker run -d --name {PROJECT}-http -p {HTTP_PORT}:5000 {evars} \\
+                   -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID:$GROUPS \\
                    {PROJECT}:`cat app/image.hash` uwsgi --ini /app/etc/uwsgi.ini
         sleep 3
         docker logs --tail 10 {PROJECT}-http
@@ -103,18 +108,20 @@ def restart():
 
 
 def migrate(revision='head'):
+    evars = get_evars()
     run(f'''
         cd {PROJECT}
-        docker run --rm -e CONFIG={CONFIG} -it \\
+        docker run --rm {evars} -it \\
                    -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID:$GROUPS \\
                    {PROJECT}:`cat app/image.hash` alembic upgrade {revision}
     ''')
 
 
 def shell():
+    evars = get_evars()
     run(f'''
         cd {PROJECT}
-        docker run --rm -e CONFIG={CONFIG} -it \\
+        docker run --rm {evars} -it \\
                    -v $PWD/app:/app -v $PWD/data:/data -w /app -u $UID:$GROUPS \\
                    {PROJECT}:`cat app/image.hash` sh
     ''')
