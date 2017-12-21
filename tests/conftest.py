@@ -34,8 +34,9 @@ def dbsession(request):
     assert Settings.DATABASE_URI == str(db.engine.url), 'WEIRDO!' # double check correct db settings
 
     if tables:
-        for t in tables:
-            db.engine.execute('DROP TABLE IF EXISTS {}'.format(t.name))
+        with db.engine.connect() as cn:
+            for t in tables:
+                cn.execute('DROP TABLE IF EXISTS {}'.format(t.name))
     else:
         meta.drop_all(db.engine, tables)
 
@@ -43,7 +44,7 @@ def dbsession(request):
         t.constraints = [r for r in t.constraints if not isinstance(r, ForeignKeyConstraint)]
     meta.create_all(db.engine, tables)
 
-    request.addfinalizer(db.session.remove)
+    request.addfinalizer(db.remove_session)
 
     session = db.session
     def fadd(self, o):
